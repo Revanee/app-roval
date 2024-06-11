@@ -12,7 +12,8 @@ import darkTheme from '@/app/lib/dark-theme';
 // https://airbnb.io/visx/
 
 export default async function RevenueChart() {
-  const revenue: Revenue[] = await fetchRevenue();
+  // const revenue: Revenue[] = await fetchRevenue();
+  const revenue: Revenue[] = [];
 
   const chartHeight = 350;
   // NOTE: comment in this code when you get to this point in the course

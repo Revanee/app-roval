@@ -6,14 +6,14 @@ import { lusitana } from '@/app/ui/fonts';
 import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
 import { Suspense } from 'react';
 import { fetchInvoicesPages } from '@/app/lib/data';
-import { Metadata } from 'next'; 
+import { Metadata } from 'next';
 import darkTheme from '@/app/lib/dark-theme';
 import { auth } from '@/auth';
 
 export const metadata: Metadata = {
   title: 'Invoices',
 };
- 
+
 export default async function Page({
   searchParams,
 }: {
@@ -28,7 +28,8 @@ export default async function Page({
   const session = await auth();
   const userEmail = session?.user?.email!;
 
-  const totalPages = await fetchInvoicesPages(query, userEmail);
+  // const totalPages = await fetchInvoicesPages(query, userEmail);
+  const totalPages = 0;
 
   return (
     <div className="w-full">

@@ -12,19 +12,19 @@ export async function GET(req: any) {
   const session = await auth();
 
   if (session) {
-    const { name, email } = session.user as AccountUser;
-    const user = await sql`SELECT * FROM users2 where email = ${email}`;
+    // const { name, email } = session.user as AccountUser;
+    // const user = await sql`SELECT * FROM users2 where email = ${email}`;
 
-    if (!user.rowCount) {
-      try {
-        await sql`
-          INSERT INTO users2 (name, email, isoauth) 
-          VALUES (${name}, ${email}, ${true})
-        `
-      } catch(error) {
-        console.log(error);
-      }
-    }
+    // if (!user.rowCount) {
+    //   try {
+    //     await sql`
+    //       INSERT INTO users2 (name, email, isoauth) 
+    //       VALUES (${name}, ${email}, ${true})
+    //     `
+    //   } catch(error) {
+    //     console.log(error);
+    //   }
+    // }
 
     return Response.redirect(`${BASE_URL}/dashboard`);
   }

@@ -1,5 +1,5 @@
 'use client';
- 
+
 import { lusitana } from '@/app/ui/fonts';
 import {
   AtSymbolIcon,
@@ -16,14 +16,14 @@ import { authenticateWithOAuth } from '@/app/lib/actions';
 import { useRouter } from 'next/navigation';
 
 const GitHubSignIn = authenticateWithOAuth.bind(null, 'github');
-// const GoogleSignIn = authenticateWithOAuth.bind(null, 'google');
-function GoogleSignIn() {
-  alert(
-    "This login option does not work due to Google's privacy protection rules. \n\n" +
-    "As this is a test project, I cannot provide all the necessary bureaucracy."
-  );
-}
- 
+const GoogleSignIn = authenticateWithOAuth.bind(null, 'google');
+// function GoogleSignIn() {
+//   alert(
+//     "This login option does not work due to Google's privacy protection rules. \n\n" +
+//     "As this is a test project, I cannot provide all the necessary bureaucracy."
+//   );
+// }
+
 export default function LoginForm() {
   const [errorMessage, dispatch] = useFormState(authenticateWithCredentials, undefined);
 
@@ -31,10 +31,10 @@ export default function LoginForm() {
     <div className="flex-1 rounded-lg bg-gray-50 dark:bg-[#212121]
         px-6 pb-4 pt-8
       ">
-        <h1 className={`${lusitana.className} mb-3 text-2xl ${darkTheme.title}`}>
-          Please log in to continue.
-        </h1>
-      <form action={dispatch} className="space-y-3">  
+      <h1 className={`${lusitana.className} mb-3 text-2xl ${darkTheme.title}`}>
+        Please log in to continue.
+      </h1>
+      <form action={dispatch} className="space-y-3">
         <div className="w-full">
           <div>
             <label
@@ -58,7 +58,7 @@ export default function LoginForm() {
               <AtSymbolIcon className={`pointer-events-none absolute left-3 top-1/2 h-[18px] 
                 w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900
                 ${darkTheme.inputIcon}
-              `}/>
+              `} />
             </div>
           </div>
           <div className="mt-4">
@@ -84,13 +84,13 @@ export default function LoginForm() {
               <KeyIcon className={`pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] 
                 -translate-y-1/2 text-gray-500 peer-focus:text-gray-900
                 ${darkTheme.inputIcon}
-              `}/>
+              `} />
             </div>
           </div>
         </div>
-        
+
         <LoginButton />
-        
+
         {errorMessage && (
           <div
             className="flex h-8 items-end space-x-1"
@@ -101,7 +101,7 @@ export default function LoginForm() {
             <p className="text-sm text-red-500">{errorMessage}</p>
           </div>
         )}
-        
+
       </form>
 
       <CreateAccount />
@@ -117,10 +117,10 @@ export default function LoginForm() {
     </div>
   );
 }
- 
+
 function LoginButton() {
   const { pending } = useFormStatus();
- 
+
   return (
     <Button className="mt-4 w-full" aria-disabled={pending}>
       Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
@@ -130,9 +130,9 @@ function LoginButton() {
 
 function CreateAccount() {
   const { pending } = useFormStatus();
-  
+
   const { replace } = useRouter();
- 
+
   return (
     <Button className="mt-2 w-full" aria-disabled={pending} onClick={() => {
       replace('/create-account');

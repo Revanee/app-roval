@@ -10,9 +10,9 @@ import { useFormState } from 'react-dom';
 import darkTheme from '@/app/lib/dark-theme';
 import { User } from '@/app/lib/definitions';
 
-export default function Form({ 
+export default function Form({
   user
-} : { 
+}: {
   user: User
 }) {
 
@@ -25,25 +25,25 @@ export default function Form({
 
       <div className={`rounded-md bg-gray-50 ${darkTheme.container} p-4 md:p-6`}>
         <div className="mb-4">
-          { user.password === null ? (
-              <p className={`
+          {user.password === null ? (
+            <p className={`
                 mb-2 block text-sm font-light text-red-500
               `}>
-                So you can login with your email and password, in addition to your <br />
-                OAuth provider, you just need to define a password.
-              </p>
-            ) : (
-              <p className={`
+              So you can login with your email and password, in addition to your <br />
+              OAuth provider, you just need to define a password.
+            </p>
+          ) : (
+            <p className={`
                 mb-2 block text-sm font-medium text-green-500
               `}>
-                You&apos;re already able to login with your credentials (Login and Password). <br /><br />
+              You&apos;re already able to login with your credentials (Login and Password). <br /><br />
 
-                If your first login was through GitHub or Google and you  don&apos;t now <br />
-                what&apos;s your credential email, it is the same as the OAuth provider <br />
-                (GitHub or Google) account you used to login. <br /><br />
+              If your first login was through GitHub or Google and you  don&apos;t now <br />
+              what&apos;s your credential email, it is the same as the OAuth provider <br />
+              (GitHub or Google) account you used to login. <br /><br />
 
-                You can also change your password whatever you want on this page.
-              </p>
+              You can also change your password whatever you want on this page.
+            </p>
           )}
         </div>
 
@@ -51,7 +51,7 @@ export default function Form({
           <label htmlFor="name" className={`mb-2 block text-sm font-medium
             ${darkTheme.text}
           `}>
-            Name: 
+            Name:
           </label>
           <div className="relative">
             <input
@@ -68,7 +68,7 @@ export default function Form({
             />
             <UserCircleIcon className={`pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] 
               -translate-y-1/2 text-gray-500 ${darkTheme.inputIcon}
-            `}/>
+            `} />
           </div>
 
           <div id="name-error" aria-live="polite" aria-atomic="true">
@@ -85,7 +85,7 @@ export default function Form({
           <label htmlFor="password" className={`mb-2 block text-sm font-medium
             ${darkTheme.text}
           `}>
-            Password: 
+            Password:
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
@@ -103,7 +103,7 @@ export default function Form({
               <AtSymbolIcon className={`pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] 
                 -translate-y-1/2 text-gray-500 peer-focus:text-gray-900
                 ${darkTheme.inputIcon}
-              `}/>
+              `} />
             </div>
 
             <div id="password-error" aria-live="polite" aria-atomic="true">
@@ -163,7 +163,7 @@ export default function Form({
         </div> */}
 
         {state?.message && (
-          <p className="mt-2 text-sm text-red-500"  key={state.message}>
+          <p className="mt-2 text-sm text-red-500" key={state.message}>
             {state.message}
           </p>
         )}

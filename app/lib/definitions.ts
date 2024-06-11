@@ -11,6 +11,11 @@ export type User = {
   theme: number;
 };
 
+export type Party = {
+  id: number,
+  name: string,
+}
+
 export type Customer = {
   id: string;
   name: string;
@@ -61,6 +66,11 @@ export type CustomersTableType = {
   total_invoices: number;
   total_pending: number;
   total_paid: number;
+};
+
+export type AggregateVotesTableType = {
+  party_id: number;
+  count: number;
 };
 
 export type FormattedCustomersTable = {

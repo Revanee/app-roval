@@ -5,7 +5,7 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   UserIcon,
-  
+  ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -16,12 +16,13 @@ import darkTheme from '@/app/lib/dark-theme';
 // Depending on the size of the application, this would be stored in a database.
 const links = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  {
-    name: 'Invoices',
-    href: '/dashboard/invoices',
-    icon: DocumentDuplicateIcon,
-  },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  { name: 'New Survey', href: '/dashboard/survey/new', icon: ClipboardDocumentCheckIcon },
+  // {
+  //   name: 'Invoices',
+  //   href: '/dashboard/invoices',
+  //   icon: DocumentDuplicateIcon,
+  // },
+  // { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
   { name: 'My Account', href: '/dashboard/user-profile', icon: UserIcon }
 ];
 

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { signIn } from '@/auth';
+import { auth, signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import bcrypt from 'bcrypt';
 
@@ -37,6 +37,16 @@ const UserSchema = z.object({
   // })
 });
 
+const SurveysSchema = z.object({
+  id: z.string(),
+  pluralityId: z.string({ invalid_type_error: 'Please select party.' })
+    .pipe(z.coerce.number()),
+  approvalIds: z.array(
+    z.coerce.number()
+  ),
+  date: z.string(),
+});
+
 const InvoicesSchema = z.object({
   id: z.string(),
   customerId: z.string({
@@ -58,8 +68,17 @@ const CustomerSchema = z.object({
 })
 
 // Use Zod to update the expected types
+const CreateSurvey = SurveysSchema.omit({ id: true, date: true });
 const CreateInvoice = InvoicesSchema.omit({ id: true, date: true });
 const UpdateInvoice = InvoicesSchema.omit({ id: true, date: true });
+
+export type SurveyState = {
+  errors?: {
+    pluralityId?: string[];
+    approvalIds?: string[];
+  };
+  message?: string | null;
+};
 
 // This is temporary until @types/react-dom is updated
 export type InvoiceState = {
@@ -90,6 +109,58 @@ export type CustomerState = {
   message?: string | null;
 }
 
+const TEST_SURVEY_ID = -1;
+export async function createSurvey(prevState: SurveyState, formData: FormData) {
+
+  // Validate form using Zod
+  const validatedFields = CreateSurvey.safeParse({
+    pluralityId: formData.get('pluralityId'),
+    approvalIds: formData.getAll('approvalIds'),
+  });
+
+  // If form validation fails, return errors early. Otherwise, continue.
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Create Survey.',
+    };
+  }
+
+  // Prepare data for insertion into the database
+  const { pluralityId, approvalIds } = validatedFields.data;
+
+  const session = await auth();
+  if (session == null) {
+    return {
+      message: 'Not logged in!',
+    }
+  }
+  const user_id = session.user?.email;
+  if (user_id == null || user_id == undefined) {
+    return {
+      message: 'Missing user info!',
+    }
+  }
+  const survey_id = TEST_SURVEY_ID;
+  const plurality_vote = pluralityId;
+  const approval_votes = JSON.stringify(approvalIds).replace("[", "{").replace("]", "}");
+
+  try {
+    await sql`
+    INSERT INTO votes (user_id, survey_id, plurality_vote, approval_votes)
+    VALUES (${user_id}, ${survey_id}, ${plurality_vote}, ${approval_votes})
+  `
+  } catch (error) {
+    console.log(error)
+    // If a database error occurs, return a more specific error.
+    return {
+      message: 'Database Error: Failed to Submit Votes.',
+    };
+  }
+
+  redirect(`/dashboard/survey/success`)
+}
+
 export async function createInvoice(prevState: InvoiceState, formData: FormData) {
   // Validate form using Zod
   const validatedFields = CreateInvoice.safeParse({
@@ -97,7 +168,7 @@ export async function createInvoice(prevState: InvoiceState, formData: FormData)
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
- 
+
   // If form validation fails, return errors early. Otherwise, continue.
   if (!validatedFields.success) {
     return {
@@ -105,12 +176,12 @@ export async function createInvoice(prevState: InvoiceState, formData: FormData)
       message: 'Missing Fields. Failed to Create Invoice.',
     };
   }
- 
+
   // Prepare data for insertion into the database
   const { customerId, amount, status } = validatedFields.data;
   const amountInCents = amount * 100;
   const date = new Date().toISOString().split('T')[0];
- 
+
   // Insert data into the database
   try {
     await sql`
@@ -123,7 +194,7 @@ export async function createInvoice(prevState: InvoiceState, formData: FormData)
       message: 'Database Error: Failed to Create Invoice.',
     };
   }
- 
+
   // Revalidate the cache for the invoices page and redirect the user.
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
@@ -139,17 +210,17 @@ export async function updateInvoice(
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
- 
+
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Update Invoice.',
     };
   }
- 
+
   const { customerId, amount, status } = validatedFields.data;
   const amountInCents = amount * 100;
- 
+
   try {
     await sql`
       UPDATE invoices2
@@ -159,7 +230,7 @@ export async function updateInvoice(
   } catch (error) {
     return { message: 'Database Error: Failed to Update Invoice.' };
   }
- 
+
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
@@ -181,7 +252,7 @@ export async function createCustomer(prevState: CustomerState, formData: FormDat
     email: formData.get('email'),
     userEmail: formData.get('userEmail')
   });
- 
+
   // If form validation fails, return errors early. Otherwise, continue.
   if (!validatedFields.success) {
     return {
@@ -189,10 +260,10 @@ export async function createCustomer(prevState: CustomerState, formData: FormDat
       message: 'Missing Fields. Failed to Create Customer.',
     };
   }
- 
+
   // Prepare data for insertion into the database
-  const { name, email, userEmail} = validatedFields.data;
- 
+  const { name, email, userEmail } = validatedFields.data;
+
   // Insert data into the database
   try {
     await sql`
@@ -205,7 +276,7 @@ export async function createCustomer(prevState: CustomerState, formData: FormDat
       message: 'Database Error: Failed to Create Customer.',
     };
   }
- 
+
   // Revalidate the cache for the invoices page and redirect the user.
   revalidatePath('/dashboard/customers');
   redirect('/dashboard/customers');
@@ -221,16 +292,16 @@ export async function updateCustomer(
     email: formData.get('email'),
     userEmail: formData.get('userEmail')
   });
- 
+
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Update Customer.',
     };
   }
- 
+
   const { name, email, userEmail } = validatedFields.data;
- 
+
   try {
     await sql`
       UPDATE customers2
@@ -243,7 +314,7 @@ export async function updateCustomer(
   } catch (error) {
     return { message: 'Database Error: Failed to Update Customer.' };
   }
- 
+
   revalidatePath('/dashboard/customers');
   redirect('/dashboard/customers');
 }
@@ -265,7 +336,7 @@ export async function createUserWithCredentials(prevState: UserState, formData: 
     email: formData.get('email'),
     password: formData.get('password'),
   });
- 
+
   // If form validation fails, return errors early. Otherwise, continue.
   if (!validatedFields.success) {
     return {
@@ -300,7 +371,7 @@ export async function createUserWithCredentials(prevState: UserState, formData: 
       `
     }
   }
-  
+
   redirect('/login');
 }
 
@@ -329,7 +400,7 @@ export async function authenticateWithOAuth(provider: string) {
 }
 
 export async function updateUser(prevState: UserState, formData: FormData) {
-  
+
   // Validate form using Zod
   const validatedFields = UserSchema.safeParse({
     name: formData.get('name'),
@@ -337,7 +408,7 @@ export async function updateUser(prevState: UserState, formData: FormData) {
     // theme: formData.get('theme'),
     email: formData.get('userEmail')
   });
- 
+
   // If form validation fails, return errors early. Otherwise, continue.
   if (!validatedFields.success) {
     return {
@@ -345,13 +416,13 @@ export async function updateUser(prevState: UserState, formData: FormData) {
       message: 'Missing Fields. Failed to Update User.',
     };
   }
- 
+
   // Prepare data for insertion into the database
   // const { name, email, password, theme} = validatedFields.data; // If the theme is enabled
   const { name, email, password } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(password, 10);
 
- 
+
   // Insert data into the database
   try {
     await sql`
@@ -370,7 +441,7 @@ export async function updateUser(prevState: UserState, formData: FormData) {
       message: 'Database Error: Failed to Update User.',
     };
   }
- 
+
   // Revalidate the cache for the invoices page and redirect the user.
   revalidatePath('/dashboard/user-profile');
   redirect('/dashboard/user-profile');

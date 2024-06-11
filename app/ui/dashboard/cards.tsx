@@ -20,12 +20,17 @@ export default async function CardWrapper() {
   const session = await auth();
   const userEmail = session?.user?.email!;
 
-  const {
-    numberOfInvoices,
-    numberOfCustomers,
-    totalPaidInvoices,
-    totalPendingInvoices,
-  } = await fetchCardData(userEmail);
+  // const {
+  //   numberOfInvoices,
+  //   numberOfCustomers,
+  //   totalPaidInvoices,
+  //   totalPendingInvoices,
+  // } = await fetchCardData(userEmail);
+
+  const numberOfInvoices = 0
+  const numberOfCustomers = 0
+  const totalPaidInvoices = 0
+  const totalPendingInvoices = 0
 
   return (
     <>

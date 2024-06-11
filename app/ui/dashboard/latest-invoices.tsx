@@ -4,12 +4,14 @@ import { lusitana } from '@/app/ui/fonts';
 import { fetchLatestInvoices } from '@/app/lib/data';
 import darkTheme from '@/app/lib/dark-theme';
 import { auth } from '@/auth';
+import email from 'next-auth/providers/email';
 
 export default async function LatestInvoices() {
   const session = await auth();
   const userEmail = session?.user?.email!;
 
-  const latestInvoices = await fetchLatestInvoices(userEmail);
+  // const latestInvoices = await fetchLatestInvoices(userEmail);
+  const latestInvoices = [{ ammount: 0, id: 0, name: session?.user?.name, email: userEmail }];
 
   return (
     <div className="flex w-full flex-col md:col-span-4">
@@ -49,7 +51,7 @@ export default async function LatestInvoices() {
                   className={`${lusitana.className} truncate text-sm font-medium md:text-base 
                     ${darkTheme.title}
                   `}>
-                  {invoice.amount}
+                  {invoice.ammount}
                 </p>
               </div>
             );

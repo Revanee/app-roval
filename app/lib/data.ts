@@ -8,6 +8,8 @@ import {
   User,
   Revenue,
   CustomerForm,
+  Party,
+  AggregateVotesTableType,
 } from './definitions';
 import { formatCurrency } from './utils';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -39,7 +41,7 @@ export async function fetchRevenue() {
 
 export async function fetchLatestInvoices(userEmail: string) {
   noStore();
-  
+
   try {
     const data = await sql<LatestInvoiceRaw>`
       SELECT invoices2.amount, customers2.name, customers2.email, invoices2.id
@@ -63,7 +65,7 @@ export async function fetchLatestInvoices(userEmail: string) {
 
 export async function fetchCardData(userEmail: string) {
   noStore();
-  
+
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
@@ -155,7 +157,7 @@ export async function fetchFilteredInvoices(
 
 export async function fetchInvoicesPages(query: string, userEmail: string) {
   noStore();
-  
+
   try {
     const count = await sql`SELECT COUNT(*)
     FROM invoices2
@@ -179,7 +181,7 @@ export async function fetchInvoicesPages(query: string, userEmail: string) {
 
 export async function fetchInvoiceById(id: string, userEmail: string) {
   noStore();
-  
+
   try {
     const data = await sql<InvoiceForm>`
       SELECT
@@ -202,7 +204,7 @@ export async function fetchInvoiceById(id: string, userEmail: string) {
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
     }));
-    
+
     return invoice[0];
   } catch (error) {
     console.error('Database Error:', error);
@@ -233,11 +235,85 @@ export async function fetchCustomers(userEmail: string) {
   }
 }
 
+const PARTIES = [
+  { id: 0, name: 'БСП' },
+  { id: 1, name: 'ГЕРБ-СДС' },
+  { id: 2, name: 'ВЪЗРАЖДАНЕ' },
+  { id: 3, name: 'ИМА ТАКЪВ НАРОД' },
+  { id: 4, name: 'ПП-ДБ' },
+  { id: 5, name: 'ДПС' },
+] as Array<Party>
+
+export async function fetchParties() {
+  noStore();
+
+  try {
+
+    const parties = PARTIES;
+    return parties;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all customers.');
+  }
+}
+
+export async function fetchAggregatePluralityVotes(surveyId: number) {
+  noStore();
+
+  try {
+    const data = await sql<AggregateVotesTableType>`
+    SELECT plurality_vote as party_id,
+    COUNT(plurality_vote) as count
+    FROM votes
+		WHERE
+      survey_id = ${surveyId}
+    GROUP BY plurality_vote;
+		`;
+
+    const votes = data.rows.map((partyResult) => ({
+      partyId: partyResult.party_id,
+      numberOfVotes: partyResult.count,
+    }));
+
+    return votes;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch votes table.');
+  }
+}
+
+export async function fetchAggregateApprovalVotes(surveyId: number) {
+  noStore();
+
+  try {
+    const data = await sql<AggregateVotesTableType>`
+    SELECT ap_party as party_id,
+    COUNT(ap_party) as count
+    FROM (
+      SELECT UNNEST(approval_votes) AS ap_party
+      FROM votes
+      WHERE
+        survey_id = ${surveyId}
+    ) GROUP BY ap_party
+		`;
+
+    const votes = data.rows.map((partyResult) => ({
+      partyId: partyResult.party_id,
+      numberOfVotes: partyResult.count,
+    }));
+
+    return votes;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch votes table.');
+  }
+}
+
 export async function fetchFilteredCustomers(query: string, currentPage: number, userEmail: string) {
   noStore();
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  
+
   try {
     const data = await sql<CustomersTableType>`
 		SELECT
@@ -273,7 +349,7 @@ export async function fetchFilteredCustomers(query: string, currentPage: number,
 
 export async function fetchCustomersPages(query: string, userEmail: string) {
   noStore();
-  
+
   try {
     const count = await sql`SELECT COUNT(*)
     FROM customers2
@@ -293,7 +369,7 @@ export async function fetchCustomersPages(query: string, userEmail: string) {
 
 export async function fetchCustomerById(id: string, userEmail: string) {
   noStore();
-  
+
   try {
     const customer = await sql<CustomerForm>`
       SELECT
@@ -316,7 +392,7 @@ export async function fetchCustomerById(id: string, userEmail: string) {
 
 export async function getUser(userEmail: string) {
   noStore();
-  
+
   try {
     const user = await sql`SELECT * FROM users2 WHERE email = ${userEmail}`;
     return user.rows[0] as User;
